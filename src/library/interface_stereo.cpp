@@ -55,6 +55,13 @@ void OrbSlam2InterfaceStereo::stereoImageCallback(
   cv::Mat T_C_W_opencv =
       slam_system_->TrackStereo(cv_ptr_left->image, cv_ptr_right->image,
                                 cv_ptr_left->header.stamp.toSec());
+
+//    ROS_INFO("SLAM State -> %d", slam_system_->GetTrackingState());
+    std_msgs::Int32 msg;
+    msg.data = slam_system_->GetTrackingState();
+
+    state_pub.publish(msg);
+
   // If tracking successfull
   if (!T_C_W_opencv.empty()) {
     // Converting to kindr transform and publishing

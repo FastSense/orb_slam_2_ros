@@ -4,6 +4,11 @@ project(orb_slam_2_ros)
 add_definitions(-std=c++11)
 
 find_package(catkin_simple REQUIRED)
+
+find_package(catkin REQUIRED COMPONENTS
+  std_msgs
+  )
+
 catkin_simple(ALL_DEPS_REQUIRED)
 
 find_package(Eigen REQUIRED)
