@@ -26,7 +26,7 @@ void OrbSlam2InterfaceStereo::subscribeToTopics() {
           nh_, "camera/right/image_raw", 1));
   // Creating a synchronizer
   sync_ = std::shared_ptr<message_filters::Synchronizer<sync_pol>>(
-      new message_filters::Synchronizer<sync_pol>(sync_pol(10), *left_sub_,
+      new message_filters::Synchronizer<sync_pol>(sync_pol(2), *left_sub_,
                                                   *right_sub_));
   // Registering the synchronized image callback
   sync_->registerCallback(
@@ -51,10 +51,14 @@ void OrbSlam2InterfaceStereo::stereoImageCallback(
     ROS_ERROR("cv_bridge exception: %s", e.what());
     return;
   }
+    ros::Time t1 = ros::Time::now();
   // Handing the image to ORB slam for tracking
   cv::Mat T_C_W_opencv =
       slam_system_->TrackStereo(cv_ptr_left->image, cv_ptr_right->image,
                                 cv_ptr_left->header.stamp.toSec());
+    ros::Time t2 = ros::Time::now();
+    double dt = (t2.sec - t1.sec)*1000 + (t2.nsec - t1.nsec)/1000000;
+    ROS_WARN("Track time ms -> %f", dt);
 
 //    ROS_INFO("SLAM State -> %d", slam_system_->GetTrackingState());
     std_msgs::Int32 msg;

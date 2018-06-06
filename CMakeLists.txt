@@ -7,17 +7,20 @@ find_package(catkin_simple REQUIRED)
 
 find_package(catkin REQUIRED COMPONENTS
   std_msgs
+  image_geometry
+  image_transport
   )
 
 catkin_simple(ALL_DEPS_REQUIRED)
 
-find_package(Eigen REQUIRED)
+find_package(Eigen3 REQUIRED)
 include_directories(${Eigen_INCLUDE_DIRS})
 
 cs_add_library(orb_slam_2_interface
   src/library/interface.cpp
   src/library/interface_mono.cpp
   src/library/interface_stereo.cpp
+  src/library/interface_rgbd.cpp
 )
 
 cs_add_executable(orb_slam_2_ros_node
