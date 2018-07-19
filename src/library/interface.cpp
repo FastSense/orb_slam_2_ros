@@ -6,6 +6,8 @@
 #include <opencv2/core/core.hpp>
 #include <opencv2/core/eigen.hpp>
 
+
+
 namespace orb_slam_2_interface {
 
 OrbSlam2Interface::OrbSlam2Interface(const ros::NodeHandle& nh,
@@ -15,19 +17,36 @@ OrbSlam2Interface::OrbSlam2Interface(const ros::NodeHandle& nh,
       verbose_(kDefaultVerbose),
       frame_id_(kDefaultFrameId),
       child_frame_id_(kDefaultChildFrameId) {
+
+    use_master_logger = false;
+    nh_private_.getParam("use_master_logger", use_master_logger);
+    if (use_master_logger) {
+        logger = new LoggerMaster(nh_private_);
+    }
   // Getting data and params
   advertiseTopics();
   getParametersFromRos();
 }
 
 void OrbSlam2Interface::advertiseTopics() {
-  // Advertising topics
-  T_pub_ = nh_private_.advertise<geometry_msgs::TransformStamped>(
-      "transform_cam", 1);
-  // Creating a callback timer for TF publisher
-  tf_timer_ = nh_.createTimer(ros::Duration(0.01),
-                              &OrbSlam2Interface::publishCurrentPoseAsTF, this);
+    // Advertising topics
+    T_pub_ = nh_private_.advertise<geometry_msgs::TransformStamped>(
+        "transform_cam", 1);
+    // Creating a callback timer for TF publisher
+    tf_timer_ = nh_.createTimer(ros::Duration(0.01),
+                                &OrbSlam2Interface::publishCurrentPoseAsTF, this);
     state_pub = nh_.advertise<std_msgs::Int32>("slam_state", 10);
+
+    if (use_master_logger) {
+        log_path_pub = nh_.advertise<std_msgs::String>("master_logger_path", 2, true);
+        std::string log_path;
+        logger->get_log_path(log_path);
+
+        std_msgs::String msg;
+        msg.data = log_path;
+
+        log_path_pub.publish(msg);
+    }
 }
 
 void OrbSlam2Interface::getParametersFromRos() {

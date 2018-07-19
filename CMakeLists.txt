@@ -17,6 +17,7 @@ find_package(Eigen3 REQUIRED)
 include_directories(${Eigen_INCLUDE_DIRS})
 
 cs_add_library(orb_slam_2_interface
+  src/library/logger.cpp
   src/library/interface.cpp
   src/library/interface_mono.cpp
   src/library/interface_stereo.cpp

@@ -14,6 +14,8 @@
 #include "orb_slam_2_ros/types.hpp"
 #include "std_msgs/Int32.h"
 
+#include "orb_slam_2_ros/logger.h"
+
 namespace orb_slam_2_interface {
 
 // Default values for parameters
@@ -53,6 +55,7 @@ class OrbSlam2Interface {
   tf::TransformBroadcaster tf_broadcaster_;
   ros::Timer tf_timer_;
     ros::Publisher state_pub;
+    ros::Publisher log_path_pub;
 
   // The orb slam system
   std::shared_ptr<ORB_SLAM2::System> slam_system_;
@@ -62,6 +65,7 @@ class OrbSlam2Interface {
 
   // Parameters
   bool verbose_;
+    bool use_master_logger;
   std::string vocabulary_file_path_;
   std::string settings_file_path_;
 
@@ -71,6 +75,8 @@ class OrbSlam2Interface {
 
   // Folder for input images logging (followed with "/")
   std::string imgs_folder ;
+
+    LoggerMaster *logger;
 };
 
 }  // namespace orb_slam_2_interface
