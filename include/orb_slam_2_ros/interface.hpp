@@ -66,6 +66,9 @@ class OrbSlam2Interface {
   // Transform frame names
   std::string frame_id_;
   std::string child_frame_id_;
+
+  // Folder for input images logging (followed with "/")
+  std::string imgs_folder ;
 };
 
 }  // namespace orb_slam_2_interface

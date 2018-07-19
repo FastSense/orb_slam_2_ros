@@ -20,6 +20,7 @@ typedef message_filters::sync_policies::ApproximateTime<sensor_msgs::Image,
 // Class handling global alignment calculation and publishing
 class OrbSlam2InterfaceStereo : public OrbSlam2Interface {
  public:
+  std::ofstream fs_logfile;
   // Constructor
   OrbSlam2InterfaceStereo(const ros::NodeHandle& nh,
                           const ros::NodeHandle& nh_private);

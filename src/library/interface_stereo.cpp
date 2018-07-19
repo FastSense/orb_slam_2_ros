@@ -11,6 +11,12 @@ OrbSlam2InterfaceStereo::OrbSlam2InterfaceStereo(const ros::NodeHandle& nh,
   subscribeToTopics();
   //advertiseTopics();
   //getParametersFromRos();
+
+  //fs_logfile=std::ofstream("/home/sergey/work/px4/catkin_ws/Imgs/ToSlam.txt");
+
+  nh_private.param("imgs_folder", imgs_folder, std::string("/home/sergey/Pictures/"));
+  fs_logfile=std::ofstream(imgs_folder+"ToSlam.txt");
+
   slam_system_ = std::shared_ptr<ORB_SLAM2::System>(
       new ORB_SLAM2::System(vocabulary_file_path_, settings_file_path_,
                             ORB_SLAM2::System::STEREO, true));
@@ -51,6 +57,7 @@ void OrbSlam2InterfaceStereo::stereoImageCallback(
     ROS_ERROR("cv_bridge exception: %s", e.what());
     return;
   }
+  fs_logfile<<std::to_string(msg_left->header.stamp.toNSec())<<","<<std::to_string(msg_right->header.stamp.toNSec())<<std::endl;
   // Handing the image to ORB slam for tracking
   cv::Mat T_C_W_opencv =
       slam_system_->TrackStereo(cv_ptr_left->image, cv_ptr_right->image,
