@@ -7,6 +7,7 @@
 #include "orb_slam_2_ros/interface.hpp"
 #include "orb_slam_2_ros/interface_mono.hpp"
 #include "orb_slam_2_ros/interface_stereo.hpp"
+#include "orb_slam_2_ros/interface_rgbd.h"
 
 // A factory method for creating an interface
 std::unique_ptr<orb_slam_2_interface::OrbSlam2Interface> create_interface(
@@ -20,9 +21,12 @@ std::unique_ptr<orb_slam_2_interface::OrbSlam2Interface> create_interface(
   } else if (interface_type == "stereo") {
     interface = std::unique_ptr<orb_slam_2_interface::OrbSlam2Interface>(
         new orb_slam_2_interface::OrbSlam2InterfaceStereo(nh, nh_private));
-  } else {
+  } else if (interface_type == "rgbd") {
+      interface = std::unique_ptr<orb_slam_2_interface::OrbSlam2Interface>(
+          new orb_slam_2_interface::OrbSlam2InterfaceRgbd(nh, nh_private));
+  }else {
     ROS_FATAL(
-        "interface type not recognized. Must be mono or stereo.");
+        "interface type not recognized. Must be mono, stereo or rgbd.");
     ros::shutdown();
     exit(1);
   }

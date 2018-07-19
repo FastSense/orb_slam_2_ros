@@ -12,6 +12,7 @@
 #include <Eigen/Geometry>
 
 #include "orb_slam_2_ros/types.hpp"
+#include "std_msgs/Int32.h"
 
 namespace orb_slam_2_interface {
 
@@ -51,6 +52,7 @@ class OrbSlam2Interface {
   ros::Publisher T_pub_;
   tf::TransformBroadcaster tf_broadcaster_;
   ros::Timer tf_timer_;
+    ros::Publisher state_pub;
 
   // The orb slam system
   std::shared_ptr<ORB_SLAM2::System> slam_system_;

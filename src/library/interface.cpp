@@ -27,6 +27,7 @@ void OrbSlam2Interface::advertiseTopics() {
   // Creating a callback timer for TF publisher
   tf_timer_ = nh_.createTimer(ros::Duration(0.01),
                               &OrbSlam2Interface::publishCurrentPoseAsTF, this);
+    state_pub = nh_.advertise<std_msgs::Int32>("slam_state", 10);
 }
 
 void OrbSlam2Interface::getParametersFromRos() {
