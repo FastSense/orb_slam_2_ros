@@ -18,10 +18,10 @@ const std::string LoggerMaster::currentDateTime() {
     return buf;
 }
 
-void LoggerMaster::print_time(std::ofstream &base_link_file_, ros::Time &start_time, ros::Time &current_time) {
+void LoggerMaster::print_time(const ros::Time &current_time) {
     unsigned int dt_sec = current_time.sec - start_time.sec;
     unsigned int dt_ms = (current_time.nsec - start_time.nsec)/1000000;
-    base_link_file_ << dt_sec << "." << dt_ms << ",";
+    log_stream << dt_sec << "." << dt_ms << ",";
 }
 
 void LoggerMaster::get_log_path(std::string &log_path_out) {
@@ -53,5 +53,99 @@ LoggerMaster::LoggerMaster(ros::NodeHandle& private_nh) {
 
     } while(0);
 
+    log_file = log_path + "slam.log";
+    log_stream.open(log_file);
+
+    start_time = ros::Time::now();
 
 };
+
+LoggerMaster::~LoggerMaster() {
+    log_stream.close();
+}
+
+
+
+// Checks if a matrix is a valid rotation matrix.
+bool isRotationMatrix(cv::Mat &R)
+{
+    cv::Mat Rt;
+    cv::transpose(R, Rt);
+    cv::Mat shouldBeIdentity = Rt * R;
+    cv::Mat I = cv::Mat::eye(3,3, shouldBeIdentity.type());
+
+    return  cv::norm(I, shouldBeIdentity) < 1e-6;
+
+}
+
+// Calculates rotation matrix to euler angles
+// The result is the same as MATLAB except the order
+// of the euler angles ( x and z are swapped ).
+cv::Vec3f rotationMatrixToEulerAngles(cv::Mat &R)
+{
+    assert(isRotationMatrix(R));
+
+    float sy = sqrt(R.at<float>(0,0) * R.at<float>(0,0) +  R.at<float>(1,0) * R.at<float>(1,0) );
+
+    bool singular = sy < 1e-6; // If
+
+    float x, y, z;
+    if (!singular)
+    {
+        x = atan2(R.at<float>(2,1) , R.at<float>(2,2));
+        y = atan2(-R.at<float>(2,0), sy);
+        z = atan2(R.at<float>(1,0), R.at<float>(0,0));
+    }
+    else
+    {
+        x = atan2(-R.at<float>(1,2), R.at<float>(1,1));
+        y = atan2(-R.at<float>(2,0), sy);
+        z = 0;
+    }
+    return cv::Vec3f(x, y, z);
+}
+
+// ts, slam state, x, y, z, yaw, pith, roll
+
+// The industry standard is Z-Y-X because that corresponds to yaw, pitch and roll
+
+//
+void LoggerMaster::log_slam_data(const ros::Time &current_time, int slam_state, cv::Mat &RT) {
+
+    if (RT.empty()) {
+
+        print_time(current_time);
+        log_stream << slam_state << "\n";
+
+    } else {
+
+//        ROS_WARN("RT: w -> %d, h -> %d", RT.cols, RT.rows);
+//        for (int j = 0; j < RT.rows; j++)
+//            ROS_WARN("%f\t%f\t%f\t%f", RT.at<float>(j, 0), RT.at<float>(j, 1), RT.at<float>(j, 2), RT.at<float>(j, 3));
+
+        // extract x, y, z
+        float x = RT.at<float>(0, 3);
+        float y = RT.at<float>(1, 3);
+        float z = RT.at<float>(2, 3);
+
+        // get rotation matrix
+        cv::Mat R = RT(cv::Rect(0, 0, 3, 3));
+
+//        ROS_WARN("R: w -> %d, h -> %d", R.cols, R.rows);
+//        for (int j = 0; j < R.rows; j++)
+//            ROS_WARN("%f\t%f\t%f\n", R.at<double>(j, 0), R.at<double>(j, 1), R.at<double>(j, 2));
+
+        // extract yaw, pitch, roll
+        cv::Vec3f angles = rotationMatrixToEulerAngles(R);
+        float yaw = angles[2];
+        float pitch = angles[1];
+        float roll = angles[0];
+
+        // print log
+        print_time(current_time);
+        log_stream << slam_state << ",";
+
+        log_stream << x << "," << y << "," << z << ",";
+        log_stream << yaw << "," << pitch << "," << roll << "\n";
+    }
+}

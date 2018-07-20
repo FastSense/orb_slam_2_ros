@@ -12,22 +12,29 @@
 
 #include <std_msgs/Int32.h>
 #include "std_msgs/String.h"
+#include <cv_bridge/cv_bridge.h>
+#include "tf2_geometry_msgs/tf2_geometry_msgs.h"
 
 class LoggerMaster {
 public:
     LoggerMaster(ros::NodeHandle& private_nh);
+    ~LoggerMaster();
 
     void get_log_path(std::string &log_path);
+    void log_slam_data(const ros::Time &current_time, int slam_state, cv::Mat &T_C_W_opencv);
 
 private:
     ros::NodeHandle nh_;
     std::string top_log_path;
     std::string log_path;
     ros::Publisher log_path_pub;
+    std::string log_file;
+    std::ofstream log_stream;
+    ros::Time start_time;
 
     // Get current date/time, format is YYYY-MM-DD.HH:mm:ss
     const std::string currentDateTime();
-    void print_time(std::ofstream &base_link_file_, ros::Time &start_time, ros::Time &current_time);
+    void print_time(const ros::Time &current_time);
 };
 
 #endif //ORB_SLAM_2_ROS_LOGGER_H

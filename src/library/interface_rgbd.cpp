@@ -69,39 +69,19 @@ void OrbSlam2InterfaceRgbd::depthCallback(const sensor_msgs::ImageConstPtr& dept
         Transformation T_C_W, T_W_C;
         convertOrbSlamPoseToKindr(T_C_W_opencv, &T_C_W);
         T_W_C = T_C_W.inverse();
-        publishCurrentPose(T_W_C, rgb_header);
+//        publishCurrentPose(T_W_C, rgb_header);
+        publishCurrentPose(T_W_C, depth_ptr->header);
         // Saving the transform to the member for publishing as a TF
         T_W_C_ = T_W_C;
+
+
+    }
+
+    if (use_master_logger) {
+        logger->log_slam_data(depth_ptr->header.stamp, msg.data, T_C_W_opencv);
     }
 }
 
-//void OrbSlam2InterfaceRgbd::depth_model_callback(const sensor_msgs::CameraInfoConstPtr& depth_info_msg) {
-//
-//    sensor_msgs::CameraInfoPtr temp_ptr( new sensor_msgs::CameraInfo(*depth_info_msg) );
-//    depth_info_msg_saved_ptr = temp_ptr;
-//
-//    depth_model_.fromCameraInfo(depth_info_msg);
-//    ROS_WARN("ORB_SLAM_2_ROS: In depth_model_callback");
-//    ROS_WARN("Depth model fx -> %f",depth_model_.fx());
-//    ROS_WARN("Depth model fy -> %f",depth_model_.fy());
-//    ROS_WARN("Depth model height -> %d",depth_model_.cameraInfo().height);
-//    ROS_WARN("Depth model width -> %d",depth_model_.cameraInfo().width);
-//    depth_model_sub.shutdown();
-//}
-//
-//void OrbSlam2InterfaceRgbd::rgb_model_callback(const sensor_msgs::CameraInfoConstPtr& rgb_info_msg) {
-//
-//    sensor_msgs::CameraInfoPtr temp_ptr( new sensor_msgs::CameraInfo(*rgb_info_msg) );
-//    rgb_info_msg_saved_ptr = temp_ptr;
-//
-//    rgb_model_.fromCameraInfo(rgb_info_msg);
-//    ROS_WARN("ORB_SLAM_2_ROS: In rgb_model_callback");
-//    ROS_WARN("RGB model fx -> %f",rgb_model_.fx());
-//    ROS_WARN("RGB model fy -> %f",rgb_model_.fy());
-//    ROS_WARN("RGB model height -> %d",rgb_model_.cameraInfo().height);
-//    ROS_WARN("RGB model width -> %d",rgb_model_.cameraInfo().width);
-//    rgb_model_sub.shutdown();
-//}
 
 
 
