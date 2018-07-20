@@ -55,6 +55,17 @@ LoggerMaster::LoggerMaster(ros::NodeHandle& private_nh) {
 
     log_file = log_path + "slam.log";
     log_stream.open(log_file);
+//    if (log_stream.is_open())
+//    {
+//        log_stream << "lorem ipsum";
+//        ROS_ERROR("Output operation successfully performed");
+//    }
+//    else
+//    {
+//        ROS_ERROR("Error opening file");
+//    }
+//    log_stream << "0,0\n";
+//    log_stream.close();
 
     start_time = ros::Time::now();
 
@@ -112,6 +123,7 @@ cv::Vec3f rotationMatrixToEulerAngles(cv::Mat &R)
 //
 void LoggerMaster::log_slam_data(const ros::Time &current_time, int slam_state, cv::Mat &RT) {
 
+
     if (RT.empty()) {
 
         print_time(current_time);
@@ -148,4 +160,5 @@ void LoggerMaster::log_slam_data(const ros::Time &current_time, int slam_state, 
         log_stream << x << "," << y << "," << z << ",";
         log_stream << yaw << "," << pitch << "," << roll << "\n";
     }
+    log_stream.flush();
 }

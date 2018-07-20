@@ -77,6 +77,10 @@ void OrbSlam2InterfaceStereo::stereoImageCallback(
     T_W_C_ = T_W_C;
   }
 
+    if (use_master_logger) {
+        logger->log_slam_data(msg_left->header.stamp, msg.data, T_C_W_opencv);
+    }
+
 }
 
 }  // namespace orb_slam_2_interface
