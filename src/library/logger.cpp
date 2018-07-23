@@ -19,9 +19,13 @@ const std::string LoggerMaster::currentDateTime() {
 }
 
 void LoggerMaster::print_time(const ros::Time &current_time) {
-    unsigned int dt_sec = current_time.sec - start_time.sec;
-    unsigned int dt_ms = (current_time.nsec - start_time.nsec)/1000000;
-    log_stream << dt_sec << "." << dt_ms << ",";
+//    unsigned int dt_sec = current_time.sec - start_time.sec;
+//    unsigned int dt_ms = (current_time.nsec - start_time.nsec)/1000000;
+//    log_stream << dt_sec << "." << dt_ms << ",";
+
+    ros::Duration delta=current_time-start_time;
+    log_stream << delta.sec << "." << delta.nsec/1000000 << ",";
+
 }
 
 void LoggerMaster::get_log_path(std::string &log_path_out) {
