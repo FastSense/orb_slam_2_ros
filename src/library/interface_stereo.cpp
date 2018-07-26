@@ -58,12 +58,17 @@ void OrbSlam2InterfaceStereo::stereoImageCallback(
     return;
   }
   fs_logfile<<std::to_string(msg_left->header.stamp.toNSec())<<","<<std::to_string(msg_right->header.stamp.toNSec())<<std::endl;
+
+  ros::Time BeforeProc=ros::Time::now();
+
   // Handing the image to ORB slam for tracking
   cv::Mat T_C_W_opencv =
       slam_system_->TrackStereo(cv_ptr_left->image, cv_ptr_right->image,
                                 cv_ptr_left->header.stamp.toSec());
     std_msgs::Int32 msg;
     msg.data = slam_system_->GetTrackingState();
+
+  ros::Duration proc_time=ros::Time::now()-BeforeProc;
 
     state_pub.publish(msg);  
 // If tracking successfull
@@ -77,8 +82,10 @@ void OrbSlam2InterfaceStereo::stereoImageCallback(
     T_W_C_ = T_W_C;
   }
 
+
     if (use_master_logger) {
-        logger->log_slam_data(msg_left->header.stamp, msg.data, T_C_W_opencv);
+        logger->log_slam_data(msg_left->header.stamp, proc_time, msg.data, T_C_W_opencv);
+        //logger->log_slam_data(msg_left->header.stamp, msg.data, T_C_W_opencv);
     }
 
 }

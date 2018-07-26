@@ -54,12 +54,16 @@ void OrbSlam2InterfaceRgbd::depthCallback(const sensor_msgs::ImageConstPtr& dept
         return;
     }
 
+    ros::Time BeforeProc=ros::Time::now();
+
     cv::Mat T_C_W_opencv =
         slam_system_->TrackRGBD(rgbImage, depth_ptr->image,
                                 depth_ptr->header.stamp.toSec());
 
     std_msgs::Int32 msg;
     msg.data = slam_system_->GetTrackingState();
+
+    ros::Duration proc_time=ros::Time::now()-BeforeProc;
 
     state_pub.publish(msg);
 
@@ -78,7 +82,7 @@ void OrbSlam2InterfaceRgbd::depthCallback(const sensor_msgs::ImageConstPtr& dept
     }
 
     if (use_master_logger) {
-        logger->log_slam_data(depth_ptr->header.stamp, msg.data, T_C_W_opencv);
+        logger->log_slam_data(depth_ptr->header.stamp, proc_time, msg.data, T_C_W_opencv);
     }
 }
 

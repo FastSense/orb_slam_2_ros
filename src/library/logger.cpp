@@ -24,7 +24,15 @@ void LoggerMaster::print_time(const ros::Time &current_time) {
 //    log_stream << dt_sec << "." << dt_ms << ",";
 
     ros::Duration delta=current_time-start_time;
-    log_stream << delta.sec << "." << delta.nsec/1000000 << ",";
+
+    //log_stream << delta.sec << "." << delta.nsec/1000000 << ",";
+
+//    double msec=delta.toNSec()/1000000;
+//    int sec=msec/1000;
+//    msec-=sec*1000;
+//    log_stream << sec << "." << msec << ",";
+
+    log_stream << std::to_string((double)delta.toNSec()/1000000000.0) << ",";
 
 }
 
@@ -125,44 +133,58 @@ cv::Vec3f rotationMatrixToEulerAngles(cv::Mat &R)
 // The industry standard is Z-Y-X because that corresponds to yaw, pitch and roll
 
 //
-void LoggerMaster::log_slam_data(const ros::Time &current_time, int slam_state, cv::Mat &RT) {
+void LoggerMaster::log_slam_data(const ros::Time &current_time, const ros::Duration &proc_time ,  int slam_state, cv::Mat &RT)
+{
+//void LoggerMaster::log_slam_data(const ros::Time &current_time, int slam_state, cv::Mat &RT) {
 
+//    if (RT.empty()) {
+//
+//        print_time(current_time);
+//        log_stream << slam_state << "\n";
+//
+//    } else {
 
-    if (RT.empty()) {
+    float x = 0.0;
+    float y = 0.0;
+    float z = 0.0;
+    float yaw = 0.0;
+    float pitch = 0.0;
+    float roll = 0.0;
 
-        print_time(current_time);
-        log_stream << slam_state << "\n";
+    if (!RT.empty())
+    {
 
-    } else {
-
-//        ROS_WARN("RT: w -> %d, h -> %d", RT.cols, RT.rows);
-//        for (int j = 0; j < RT.rows; j++)
-//            ROS_WARN("%f\t%f\t%f\t%f", RT.at<float>(j, 0), RT.at<float>(j, 1), RT.at<float>(j, 2), RT.at<float>(j, 3));
+    //        ROS_WARN("RT: w -> %d, h -> %d", RT.cols, RT.rows);
+    //        for (int j = 0; j < RT.rows; j++)
+    //            ROS_WARN("%f\t%f\t%f\t%f", RT.at<float>(j, 0), RT.at<float>(j, 1), RT.at<float>(j, 2), RT.at<float>(j, 3));
 
         // extract x, y, z
-        float x = RT.at<float>(0, 3);
-        float y = RT.at<float>(1, 3);
-        float z = RT.at<float>(2, 3);
+        x = RT.at<float>(0, 3);
+        y = RT.at<float>(1, 3);
+        z = RT.at<float>(2, 3);
 
         // get rotation matrix
         cv::Mat R = RT(cv::Rect(0, 0, 3, 3));
 
-//        ROS_WARN("R: w -> %d, h -> %d", R.cols, R.rows);
-//        for (int j = 0; j < R.rows; j++)
-//            ROS_WARN("%f\t%f\t%f\n", R.at<double>(j, 0), R.at<double>(j, 1), R.at<double>(j, 2));
+    //        ROS_WARN("R: w -> %d, h -> %d", R.cols, R.rows);
+    //        for (int j = 0; j < R.rows; j++)
+    //            ROS_WARN("%f\t%f\t%f\n", R.at<double>(j, 0), R.at<double>(j, 1), R.at<double>(j, 2));
 
         // extract yaw, pitch, roll
         cv::Vec3f angles = rotationMatrixToEulerAngles(R);
-        float yaw = angles[2];
-        float pitch = angles[1];
-        float roll = angles[0];
-
+        yaw = angles[2];
+        pitch = angles[1];
+        roll = angles[0];
+    }
         // print log
         print_time(current_time);
         log_stream << slam_state << ",";
 
         log_stream << x << "," << y << "," << z << ",";
-        log_stream << yaw << "," << pitch << "," << roll << "\n";
-    }
+        //log_stream << yaw << "," << pitch << "," << roll << "\n";
+
+        log_stream << yaw << "," << pitch << "," << roll <<",";
+        log_stream << std::to_string((double)proc_time.toNSec()/1000000000.0) <<  "\n";;
+    //}
     log_stream.flush();
 }
