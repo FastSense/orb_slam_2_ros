@@ -42,6 +42,9 @@ void OrbSlam2InterfaceStereo::subscribeToTopics() {
 void OrbSlam2InterfaceStereo::stereoImageCallback(
     const sensor_msgs::ImageConstPtr& msg_left,
     const sensor_msgs::ImageConstPtr& msg_right) {
+
+  static double FirstTS;
+
   // Copy the ros image message to cv::Mat.
   cv_bridge::CvImageConstPtr cv_ptr_left;
   try {
@@ -61,10 +64,19 @@ void OrbSlam2InterfaceStereo::stereoImageCallback(
 
   ros::Time BeforeProc=ros::Time::now();
 
+  if (FirstTS==0)
+  {
+    FirstTS=cv_ptr_left->header.stamp.toSec();
+  }
+
   // Handing the image to ORB slam for tracking
-  cv::Mat T_C_W_opencv =
-      slam_system_->TrackStereo(cv_ptr_left->image, cv_ptr_right->image,
-                                cv_ptr_left->header.stamp.toSec());
+//  cv::Mat T_C_W_opencv =
+//      slam_system_->TrackStereo(cv_ptr_left->image, cv_ptr_right->image,
+//                                cv_ptr_left->header.stamp.toSec());
+
+  cv::Mat T_C_W_opencv =slam_system_->TrackStereo(cv_ptr_left->image, cv_ptr_right->image,
+                                cv_ptr_left->header.stamp.toSec()-FirstTS);
+
     std_msgs::Int32 msg;
     msg.data = slam_system_->GetTrackingState();
 
