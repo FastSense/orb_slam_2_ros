@@ -33,6 +33,7 @@ void OrbSlam2InterfaceRgbd::subscribeToTopics() {
 }
 
 void OrbSlam2InterfaceRgbd::rgbCallback(const sensor_msgs::ImageConstPtr& msg) {
+//    ROS_ERROR("OrbSlam2InterfaceRgbd::rgbCallback start");
     cv_bridge::CvImageConstPtr cv_ptr;
     try {
         cv_ptr = cv_bridge::toCvShare(msg);
@@ -43,9 +44,12 @@ void OrbSlam2InterfaceRgbd::rgbCallback(const sensor_msgs::ImageConstPtr& msg) {
 
     cv_ptr->image.copyTo(rgbImage);
     rgb_header = msg->header;
+//    ROS_ERROR("OrbSlam2InterfaceRgbd::rgbCallback end");
 }
 
 void OrbSlam2InterfaceRgbd::depthCallback(const sensor_msgs::ImageConstPtr& depth_msg) {
+//    ROS_ERROR("OrbSlam2InterfaceRgbd::depthCallback start");
+//    ROS_ERROR("OrbSlam2InterfaceRgbd:: depth size %d, %d, type -> %s", depth_msg.get()->height,depth_msg.get()->width, depth_msg.get()->encoding.c_str());
     cv_bridge::CvImageConstPtr depth_ptr;
     try {
         depth_ptr = cv_bridge::toCvShare(depth_msg);
@@ -53,12 +57,18 @@ void OrbSlam2InterfaceRgbd::depthCallback(const sensor_msgs::ImageConstPtr& dept
         ROS_ERROR("cv_bridge exception: %s", e.what());
         return;
     }
+//    ROS_ERROR("rs_depth_imageCallback: depth_float_img size %d, %d, step -> %d", depth_float_img.cols, depth_float_img.rows, depth_float_img.step[0]);
 
     ros::Time BeforeProc=ros::Time::now();
+
+//    ROS_ERROR("OrbSlam2InterfaceRgbd:: rgb size %d, %d", rgbImage.cols, rgbImage.rows);
+//    ROS_ERROR("OrbSlam2InterfaceRgbd:: depth size %d, %d, step -> %d", depth_ptr->image.cols, depth_ptr->image.rows, depth_ptr->image.step[0]);
 
     cv::Mat T_C_W_opencv =
         slam_system_->TrackRGBD(rgbImage, depth_ptr->image,
                                 depth_ptr->header.stamp.toSec());
+
+//    ROS_ERROR("OrbSlam2InterfaceRgbd::depthCallback TrackRGBD 2");
 
     std_msgs::Int32 msg;
     msg.data = slam_system_->GetTrackingState();
@@ -84,6 +94,7 @@ void OrbSlam2InterfaceRgbd::depthCallback(const sensor_msgs::ImageConstPtr& dept
     if (use_master_logger) {
         logger->log_slam_data(depth_ptr->header.stamp, proc_time, msg.data, T_C_W_opencv);
     }
+//    ROS_ERROR("OrbSlam2InterfaceRgbd::depthCallback end");
 }
 
 
