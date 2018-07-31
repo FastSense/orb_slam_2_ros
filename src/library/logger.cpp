@@ -52,6 +52,11 @@ LoggerMaster::LoggerMaster(ros::NodeHandle& private_nh) {
 
     } while(0);
 
+    path_pub_ = nh_.advertise<std_msgs::String>("master_log_path", 1, true);
+    std_msgs::String msg;
+    msg.data = log_path;
+    path_pub_.publish(msg);
+
     log_file = log_path + "slam.log";
     log_stream.open(log_file);
     if (!log_stream.is_open()){

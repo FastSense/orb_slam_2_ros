@@ -36,17 +36,6 @@ void OrbSlam2Interface::advertiseTopics() {
     tf_timer_ = nh_.createTimer(ros::Duration(0.01),
                                 &OrbSlam2Interface::publishCurrentPoseAsTF, this);
     state_pub = nh_.advertise<std_msgs::Int32>("slam_state", 10);
-
-    if (use_master_logger) {
-        log_path_pub = nh_.advertise<std_msgs::String>("master_logger_path", 2, true);
-        std::string log_path;
-        logger->get_log_path(log_path);
-
-        std_msgs::String msg;
-        msg.data = log_path;
-
-        log_path_pub.publish(msg);
-    }
 }
 
 void OrbSlam2Interface::getParametersFromRos() {

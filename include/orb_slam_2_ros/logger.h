@@ -25,6 +25,7 @@ public:
 
 private:
     ros::NodeHandle nh_;
+    ros::Publisher path_pub_;
     std::string top_log_path;
     std::string log_path;
     ros::Publisher log_path_pub;
