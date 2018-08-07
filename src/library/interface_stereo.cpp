@@ -74,8 +74,9 @@ void OrbSlam2InterfaceStereo::stereoImageCallback(
 //      slam_system_->TrackStereo(cv_ptr_left->image, cv_ptr_right->image,
 //                                cv_ptr_left->header.stamp.toSec());
 
+    cv::Mat mInitialPoseEstimation;
   cv::Mat T_C_W_opencv =slam_system_->TrackStereo(cv_ptr_left->image, cv_ptr_right->image,
-                                cv_ptr_left->header.stamp.toSec()-FirstTS);
+                                cv_ptr_left->header.stamp.toSec()-FirstTS, mInitialPoseEstimation);
 
     std_msgs::Int32 msg;
     msg.data = slam_system_->GetTrackingState();
@@ -96,7 +97,7 @@ void OrbSlam2InterfaceStereo::stereoImageCallback(
 
 
     if (use_master_logger) {
-        logger->log_slam_data(msg_left->header.stamp, proc_time, msg.data, T_C_W_opencv);
+        logger->log_slam_data(msg_left->header.stamp, proc_time, msg.data, T_C_W_opencv, mInitialPoseEstimation);
         //logger->log_slam_data(msg_left->header.stamp, msg.data, T_C_W_opencv);
     }
 

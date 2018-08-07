@@ -5,7 +5,7 @@
 #include <string>
 
 #include <geometry_msgs/TransformStamped.h>
-#include <orb_slam_2/System.h>
+#include <System.h>
 #include <ros/ros.h>
 #include <sensor_msgs/Image.h>
 #include <tf/transform_broadcaster.h>

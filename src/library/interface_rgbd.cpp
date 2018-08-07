@@ -64,9 +64,10 @@ void OrbSlam2InterfaceRgbd::depthCallback(const sensor_msgs::ImageConstPtr& dept
 //    ROS_ERROR("OrbSlam2InterfaceRgbd:: rgb size %d, %d", rgbImage.cols, rgbImage.rows);
 //    ROS_ERROR("OrbSlam2InterfaceRgbd:: depth size %d, %d, step -> %d", depth_ptr->image.cols, depth_ptr->image.rows, depth_ptr->image.step[0]);
 
+    cv::Mat mInitialPoseEstimation;
     cv::Mat T_C_W_opencv =
         slam_system_->TrackRGBD(rgbImage, depth_ptr->image,
-                                depth_ptr->header.stamp.toSec());
+                                depth_ptr->header.stamp.toSec(), mInitialPoseEstimation);
 
 //    ROS_ERROR("OrbSlam2InterfaceRgbd::depthCallback TrackRGBD 2");
 
@@ -92,7 +93,7 @@ void OrbSlam2InterfaceRgbd::depthCallback(const sensor_msgs::ImageConstPtr& dept
     }
 
     if (use_master_logger) {
-        logger->log_slam_data(depth_ptr->header.stamp, proc_time, msg.data, T_C_W_opencv);
+        logger->log_slam_data(depth_ptr->header.stamp, proc_time, msg.data, T_C_W_opencv, mInitialPoseEstimation);
     }
 //    ROS_ERROR("OrbSlam2InterfaceRgbd::depthCallback end");
 }

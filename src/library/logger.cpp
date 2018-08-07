@@ -127,22 +127,14 @@ cv::Vec3f rotationMatrixToEulerAngles(cv::Mat &R)
     return cv::Vec3f(x, y, z);
 }
 
-// ts, slam state, x, y, z, yaw, pith, roll
-
+// ts, slam state, x, y, z, yaw, pith, roll, track time, x_init, y_init, z_init, yaw_init, pith_init, roll_init
 // The industry standard is Z-Y-X because that corresponds to yaw, pitch and roll
-
-//
-void LoggerMaster::log_slam_data(const ros::Time &current_time, const ros::Duration &proc_time ,  int slam_state, const cv::Mat &RT)
+void LoggerMaster::log_slam_data(const ros::Time &current_time,
+                                 const ros::Duration &proc_time ,
+                                 int slam_state,
+                                 const cv::Mat &RT,
+                                 const cv::Mat &InitPose)
 {
-//void LoggerMaster::log_slam_data(const ros::Time &current_time, int slam_state, cv::Mat &RT) {
-
-//    if (RT.empty()) {
-//
-//        print_time(current_time);
-//        log_stream << slam_state << "\n";
-//
-//    } else {
-
     float x = 0.0;
     float y = 0.0;
     float z = 0.0;
@@ -178,15 +170,52 @@ void LoggerMaster::log_slam_data(const ros::Time &current_time, const ros::Durat
         pitch = angles[1];
         roll = angles[0];
     }
-        // print log
-        print_time(current_time);
-        log_stream << slam_state << ",";
 
-        log_stream << x << "," << y << "," << z << ",";
-        //log_stream << yaw << "," << pitch << "," << roll << "\n";
+    float x_i = 0.0;
+    float y_i = 0.0;
+    float z_i = 0.0;
+    float yaw_i = 0.0;
+    float pitch_i = 0.0;
+    float roll_i = 0.0;
 
-        log_stream << yaw << "," << pitch << "," << roll <<",";
-        log_stream << std::to_string((double)proc_time.toNSec()/1000000000.0) <<  "\n";;
-    //}
+    if (!InitPose.empty())
+    {
+        cv::Mat InitPoseI=InitPose.inv();
+
+        //        ROS_WARN("RT: w -> %d, h -> %d", RT.cols, RT.rows);
+        //        for (int j = 0; j < RT.rows; j++)
+        //            ROS_WARN("%f\t%f\t%f\t%f", RT.at<float>(j, 0), RT.at<float>(j, 1), RT.at<float>(j, 2), RT.at<float>(j, 3));
+
+        //std::cout << RTI << std::endl;
+        // extract x, y, z
+        x_i = InitPoseI.at<float>(0, 3);
+        y_i = InitPoseI.at<float>(1, 3);
+        z_i = InitPoseI.at<float>(2, 3);
+
+
+        // get rotation matrix
+        cv::Mat InitR = InitPoseI(cv::Rect(0, 0, 3, 3));
+
+        //        ROS_WARN("R: w -> %d, h -> %d", R.cols, R.rows);
+        //        for (int j = 0; j < R.rows; j++)
+        //            ROS_WARN("%f\t%f\t%f\n", R.at<double>(j, 0), R.at<double>(j, 1), R.at<double>(j, 2));
+
+        // extract yaw, pitch, roll
+        cv::Vec3f angles = rotationMatrixToEulerAngles(InitR);
+        yaw_i = angles[2];
+        pitch_i = angles[1];
+        roll_i = angles[0];
+    }
+
+    // print log
+    print_time(current_time);
+    log_stream << slam_state << ",";
+    log_stream << x << "," << y << "," << z << ",";
+    log_stream << yaw << "," << pitch << "," << roll <<",";
+    log_stream << std::to_string((double)proc_time.toNSec()/1000000000.0) <<  ",";
+
+    log_stream << x_i << "," << y_i << "," << z_i << ",";
+    log_stream << yaw_i << "," << pitch_i << "," << roll_i <<"\n";
+
     log_stream.flush();
 }

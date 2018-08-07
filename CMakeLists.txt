@@ -14,7 +14,15 @@ find_package(catkin REQUIRED COMPONENTS
 catkin_simple(ALL_DEPS_REQUIRED)
 
 find_package(Eigen3 REQUIRED)
-include_directories(${Eigen_INCLUDE_DIRS})
+
+set(ORB_SLAM_PATH ~/work/px4/ORB_SLAM2)
+
+include_directories(
+  ${Eigen_INCLUDE_DIRS}
+  ${ORB_SLAM_PATH}
+  ${ORB_SLAM_PATH}/include
+)
+
 
 cs_add_library(orb_slam_2_interface
   src/library/logger.cpp
@@ -28,7 +36,15 @@ cs_add_executable(orb_slam_2_ros_node
   src/orb_slam_2_ros_node.cpp
 )
 
-target_link_libraries(orb_slam_2_ros_node orb_slam_2_interface ${catkin_LIBRARIES})
+
+
+set(ORB_SLAM_LIBS
+  ${ORB_SLAM_PATH}/Thirdparty/DBoW2/lib/libDBoW2.so
+  ${ORB_SLAM_PATH}/Thirdparty/g2o/lib/libg2o.so
+  ${ORB_SLAM_PATH}/lib/libORB_SLAM2.so
+  )
+
+target_link_libraries(orb_slam_2_ros_node orb_slam_2_interface ${catkin_LIBRARIES} ${ORB_SLAM_LIBS})
 
 cs_install()
 cs_export()

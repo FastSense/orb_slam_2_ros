@@ -21,8 +21,13 @@ public:
     ~LoggerMaster();
 
     void get_log_path(std::string &log_path);
-    void log_slam_data(const ros::Time &current_time, const ros::Duration &proc_time, int slam_state, const cv::Mat &T_C_W_opencv);
-    //void log_slam_data(const ros::Time &current_time, int slam_state, cv::Mat &T_C_W_opencv);
+    void log_slam_data(const ros::Time &current_time,
+                       const ros::Duration &proc_time,
+                       int slam_state,
+                       const cv::Mat &T_C_W_opencv,
+                       const cv::Mat &InitPose
+
+    );
 
 private:
     ros::NodeHandle nh_;
