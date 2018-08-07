@@ -19,8 +19,21 @@ const std::string LoggerMaster::currentDateTime() {
 }
 
 void LoggerMaster::print_time(const ros::Time &current_time) {
+//    unsigned int dt_sec = current_time.sec - start_time.sec;
+//    unsigned int dt_ms = (current_time.nsec - start_time.nsec)/1000000;
+//    log_stream << dt_sec << "." << dt_ms << ",";
+
     ros::Duration delta=current_time-start_time;
+
+    //log_stream << delta.sec << "." << delta.nsec/1000000 << ",";
+
+//    double msec=delta.toNSec()/1000000;
+//    int sec=msec/1000;
+//    msec-=sec*1000;
+//    log_stream << sec << "." << msec << ",";
+
     log_stream << std::to_string((double)delta.toNSec()/1000000000.0) << ",";
+
 }
 
 void LoggerMaster::get_log_path(std::string &log_path_out) {
@@ -66,6 +79,7 @@ LoggerMaster::LoggerMaster(ros::NodeHandle& private_nh) {
     }
 
     start_time = ros::Time::now();
+
 };
 
 LoggerMaster::~LoggerMaster() {
@@ -113,10 +127,21 @@ cv::Vec3f rotationMatrixToEulerAngles(cv::Mat &R)
     return cv::Vec3f(x, y, z);
 }
 
-// ts, slam state, x, y, z, yaw, pith, roll, ros_track_time
+// ts, slam state, x, y, z, yaw, pith, roll
+
 // The industry standard is Z-Y-X because that corresponds to yaw, pitch and roll
-void LoggerMaster::log_slam_data(const ros::Time &current_time, const ros::Duration &ros_track_time ,  int slam_state, cv::Mat &RT)
+
+//
+void LoggerMaster::log_slam_data(const ros::Time &current_time, const ros::Duration &proc_time ,  int slam_state, const cv::Mat &RT)
 {
+//void LoggerMaster::log_slam_data(const ros::Time &current_time, int slam_state, cv::Mat &RT) {
+
+//    if (RT.empty()) {
+//
+//        print_time(current_time);
+//        log_stream << slam_state << "\n";
+//
+//    } else {
 
     float x = 0.0;
     float y = 0.0;
@@ -125,23 +150,27 @@ void LoggerMaster::log_slam_data(const ros::Time &current_time, const ros::Durat
     float pitch = 0.0;
     float roll = 0.0;
 
-    if (!RT.empty()) {
+    if (!RT.empty())
+    {
+        cv::Mat RTI=RT.inv();
 
-//        ROS_WARN("RT: w -> %d, h -> %d", RT.cols, RT.rows);
-//        for (int j = 0; j < RT.rows; j++)
-//            ROS_WARN("%f\t%f\t%f\t%f", RT.at<float>(j, 0), RT.at<float>(j, 1), RT.at<float>(j, 2), RT.at<float>(j, 3));
+    //        ROS_WARN("RT: w -> %d, h -> %d", RT.cols, RT.rows);
+    //        for (int j = 0; j < RT.rows; j++)
+    //            ROS_WARN("%f\t%f\t%f\t%f", RT.at<float>(j, 0), RT.at<float>(j, 1), RT.at<float>(j, 2), RT.at<float>(j, 3));
 
+        //std::cout << RTI << std::endl;
         // extract x, y, z
-        x = RT.at<float>(0, 3);
-        y = RT.at<float>(1, 3);
-        z = RT.at<float>(2, 3);
+        x = RTI.at<float>(0, 3);
+        y = RTI.at<float>(1, 3);
+        z = RTI.at<float>(2, 3);
+
 
         // get rotation matrix
-        cv::Mat R = RT(cv::Rect(0, 0, 3, 3));
+        cv::Mat R = RTI(cv::Rect(0, 0, 3, 3));
 
-//        ROS_WARN("R: w -> %d, h -> %d", R.cols, R.rows);
-//        for (int j = 0; j < R.rows; j++)
-//            ROS_WARN("%f\t%f\t%f\n", R.at<double>(j, 0), R.at<double>(j, 1), R.at<double>(j, 2));
+    //        ROS_WARN("R: w -> %d, h -> %d", R.cols, R.rows);
+    //        for (int j = 0; j < R.rows; j++)
+    //            ROS_WARN("%f\t%f\t%f\n", R.at<double>(j, 0), R.at<double>(j, 1), R.at<double>(j, 2));
 
         // extract yaw, pitch, roll
         cv::Vec3f angles = rotationMatrixToEulerAngles(R);
@@ -149,12 +178,15 @@ void LoggerMaster::log_slam_data(const ros::Time &current_time, const ros::Durat
         pitch = angles[1];
         roll = angles[0];
     }
+        // print log
+        print_time(current_time);
+        log_stream << slam_state << ",";
 
-    // print log
-    print_time(current_time);
-    log_stream << slam_state << ",";
-    log_stream << x << "," << y << "," << z << ",";
-    log_stream << yaw << "," << pitch << "," << roll <<",";
-    log_stream << std::to_string((double)ros_track_time.toNSec()/1000000000.0) <<  "\n";;
+        log_stream << x << "," << y << "," << z << ",";
+        //log_stream << yaw << "," << pitch << "," << roll << "\n";
+
+        log_stream << yaw << "," << pitch << "," << roll <<",";
+        log_stream << std::to_string((double)proc_time.toNSec()/1000000000.0) <<  "\n";;
+    //}
     log_stream.flush();
 }
