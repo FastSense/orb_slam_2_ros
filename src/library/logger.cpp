@@ -133,7 +133,7 @@ cv::Vec3f rotationMatrixToEulerAngles(cv::Mat &R)
 // The industry standard is Z-Y-X because that corresponds to yaw, pitch and roll
 
 //
-void LoggerMaster::log_slam_data(const ros::Time &current_time, const ros::Duration &proc_time ,  int slam_state, cv::Mat &RT)
+void LoggerMaster::log_slam_data(const ros::Time &current_time, const ros::Duration &proc_time ,  int slam_state, const cv::Mat &RT)
 {
 //void LoggerMaster::log_slam_data(const ros::Time &current_time, int slam_state, cv::Mat &RT) {
 
@@ -153,18 +153,21 @@ void LoggerMaster::log_slam_data(const ros::Time &current_time, const ros::Durat
 
     if (!RT.empty())
     {
+        cv::Mat RTI=RT.inv();
 
     //        ROS_WARN("RT: w -> %d, h -> %d", RT.cols, RT.rows);
     //        for (int j = 0; j < RT.rows; j++)
     //            ROS_WARN("%f\t%f\t%f\t%f", RT.at<float>(j, 0), RT.at<float>(j, 1), RT.at<float>(j, 2), RT.at<float>(j, 3));
 
+        std::cout << RTI << std::endl;
         // extract x, y, z
-        x = RT.at<float>(0, 3);
-        y = RT.at<float>(1, 3);
-        z = RT.at<float>(2, 3);
+        x = RTI.at<float>(0, 3);
+        y = RTI.at<float>(1, 3);
+        z = RTI.at<float>(2, 3);
+
 
         // get rotation matrix
-        cv::Mat R = RT(cv::Rect(0, 0, 3, 3));
+        cv::Mat R = RTI(cv::Rect(0, 0, 3, 3));
 
     //        ROS_WARN("R: w -> %d, h -> %d", R.cols, R.rows);
     //        for (int j = 0; j < R.rows; j++)
