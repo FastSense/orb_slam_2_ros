@@ -41,6 +41,9 @@ public:
                  const sensor_msgs::ImagePtr& registered_msg,
                  const Eigen::Affine3d& depth_to_rgb);
 
+    void rgbdImageCallback(const sensor_msgs::ImageConstPtr& msg_left,
+                           const sensor_msgs::ImageConstPtr& msg_depth);
+
 protected:
     // Subscribes to the appropriate ROS topics
     void subscribeToTopics();

@@ -30,6 +30,78 @@ void OrbSlam2InterfaceRgbd::subscribeToTopics() {
     depth_sub_ = nh_.subscribe("camera/depth/disparity", 1,
                              &OrbSlam2InterfaceRgbd::depthCallback, this);
 
+//    // Subscribing to the stereo images
+//    left_sub_ = std::shared_ptr<message_filters::Subscriber<sensor_msgs::Image>>(
+//        new message_filters::Subscriber<sensor_msgs::Image>(
+//            nh_, "camera/left/image_raw", 1));
+//    disparity_sub_ = std::shared_ptr<message_filters::Subscriber<sensor_msgs::Image>>(
+//        new message_filters::Subscriber<sensor_msgs::Image>(
+//            nh_, "camera/depth/disparity", 1));
+//    // Creating a synchronizer
+//    sync_ = std::shared_ptr<message_filters::Synchronizer<sync_pol>>(
+//        new message_filters::Synchronizer<sync_pol>(sync_pol(10), *left_sub_,
+//                                                    *disparity_sub_));
+//    // Registering the synchronized image callback
+//    sync_->registerCallback(
+//        boost::bind(&OrbSlam2InterfaceRgbd::rgbdImageCallback, this, _1, _2));
+
+}
+
+void OrbSlam2InterfaceRgbd::rgbdImageCallback(const sensor_msgs::ImageConstPtr& msg_left,
+                                              const sensor_msgs::ImageConstPtr& msg_depth) {
+
+    cv_bridge::CvImageConstPtr cv_ptr;
+    try {
+        cv_ptr = cv_bridge::toCvShare(msg_left);
+    } catch (cv_bridge::Exception& e) {
+        ROS_ERROR("rgbdImageCallback: cv_bridge exception: %s", e.what());
+        return;
+    }
+
+
+
+    cv_bridge::CvImageConstPtr depth_ptr;
+    try {
+        depth_ptr = cv_bridge::toCvShare(msg_depth);
+    } catch (cv_bridge::Exception& e) {
+        ROS_ERROR("rgbdImageCallback: cv_bridge exception: %s", e.what());
+        return;
+    }
+
+    ros::Time BeforeProc=ros::Time::now();
+
+//    ROS_ERROR("OrbSlam2InterfaceRgbd:: depth size %d, %d, step -> %d", depth_ptr->image.cols, depth_ptr->image.rows, depth_ptr->image.step[0]);
+
+    cv::Mat mInitialPoseEstimation;
+    cv::Mat T_C_W_opencv =
+        slam_system_->TrackRGBD(cv_ptr->image, depth_ptr->image,
+                                depth_ptr->header.stamp.toSec(), mInitialPoseEstimation);
+
+
+    std_msgs::Int32 msg;
+    msg.data = slam_system_->GetTrackingState();
+
+    ros::Duration proc_time=ros::Time::now()-BeforeProc;
+
+    state_pub.publish(msg);
+
+    // If tracking successfull
+    if (!T_C_W_opencv.empty()) {
+        // Converting to kindr transform and publishing
+        Transformation T_C_W, T_W_C;
+        convertOrbSlamPoseToKindr(T_C_W_opencv, &T_C_W);
+        T_W_C = T_C_W.inverse();
+//        publishCurrentPose(T_W_C, rgb_header);
+        publishCurrentPose(T_W_C, depth_ptr->header);
+        // Saving the transform to the member for publishing as a TF
+        T_W_C_ = T_W_C;
+
+
+    }
+
+    if (use_master_logger) {
+        logger->log_slam_data(depth_ptr->header.stamp, proc_time, msg.data, T_C_W_opencv, mInitialPoseEstimation);
+    }
 }
 
 void OrbSlam2InterfaceRgbd::rgbCallback(const sensor_msgs::ImageConstPtr& msg) {
@@ -57,6 +129,7 @@ void OrbSlam2InterfaceRgbd::depthCallback(const sensor_msgs::ImageConstPtr& dept
         ROS_ERROR("cv_bridge exception: %s", e.what());
         return;
     }
+    ROS_ERROR("rs_depth_imageCallback: rbg ts -> %f, depth ts -> %f",rgb_header.stamp.toSec(), depth_ptr->header.stamp.toSec());
 //    ROS_ERROR("rs_depth_imageCallback: depth_float_img size %d, %d, step -> %d", depth_float_img.cols, depth_float_img.rows, depth_float_img.step[0]);
 
     ros::Time BeforeProc=ros::Time::now();
