@@ -9,6 +9,7 @@
 #include <ros/ros.h>
 #include <sensor_msgs/Image.h>
 #include <tf/transform_broadcaster.h>
+#include <tf2_ros/transform_listener.h>
 #include <Eigen/Geometry>
 
 #include "orb_slam_2_ros/types.hpp"
@@ -46,6 +47,15 @@ class OrbSlam2Interface {
   // Helper functions
   void convertOrbSlamPoseToKindr(const cv::Mat& T_cv, Transformation* T_kindr);
 
+    void convertOrbSlamPoseToRosGeometry(const cv::Mat& T_cv,
+                                                            geometry_msgs::Transform* msg);
+    void convertRosPoseToOrbSlam(const geometry_msgs::Transform& msg,
+                                                    cv::Mat& T_cv);
+
+    void px4_pose_callback (const geometry_msgs::PoseStamped px4_pose);
+    void save_cam_base_tf();
+    void transform_px4_pose();
+
   // Node handles
   ros::NodeHandle nh_;
   ros::NodeHandle nh_private_;
@@ -77,6 +87,14 @@ class OrbSlam2Interface {
   std::string imgs_folder ;
 
     LoggerMaster *logger;
+
+    ros::Subscriber px4_sub;
+    geometry_msgs::Transform px_cam_in_world;
+    geometry_msgs::Pose px_pose_;
+    tf2::Transform CB_tf2;
+    tf2::Transform BC_tf2;
+    bool px4_pose_ready;
+    bool use_imu_;
 };
 
 }  // namespace orb_slam_2_interface

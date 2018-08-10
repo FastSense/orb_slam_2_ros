@@ -132,79 +132,128 @@ cv::Vec3f rotationMatrixToEulerAngles(cv::Mat &R)
 void LoggerMaster::log_slam_data(const ros::Time &current_time,
                                  const ros::Duration &proc_time ,
                                  int slam_state,
-                                 const cv::Mat &RT,
-                                 const cv::Mat &InitPose)
+                                 bool track_ok,
+                                 const geometry_msgs::Transform &slam_pose,
+                                 const geometry_msgs::Transform &init_pose,
+                                 const geometry_msgs::Transform &px4_estimation)
 {
-    float x = 0.0;
-    float y = 0.0;
-    float z = 0.0;
-    float yaw = 0.0;
-    float pitch = 0.0;
-    float roll = 0.0;
+    double x = 0.0;
+    double y = 0.0;
+    double z = 0.0;
+    double yaw = 0.0;
+    double pitch = 0.0;
+    double roll = 0.0;
 
-    if (!RT.empty())
-    {
-        cv::Mat RTI=RT.inv();
+    double x_i = 0.0;
+    double y_i = 0.0;
+    double z_i = 0.0;
+    double yaw_i = 0.0;
+    double pitch_i = 0.0;
+    double roll_i = 0.0;
 
-    //        ROS_WARN("RT: w -> %d, h -> %d", RT.cols, RT.rows);
-    //        for (int j = 0; j < RT.rows; j++)
-    //            ROS_WARN("%f\t%f\t%f\t%f", RT.at<float>(j, 0), RT.at<float>(j, 1), RT.at<float>(j, 2), RT.at<float>(j, 3));
+    double x_p = 0.0;
+    double y_p = 0.0;
+    double z_p = 0.0;
+    double yaw_p = 0.0;
+    double pitch_p = 0.0;
+    double roll_p = 0.0;
 
-        //std::cout << RTI << std::endl;
-        // extract x, y, z
-        x = RTI.at<float>(0, 3);
-        y = RTI.at<float>(1, 3);
-        z = RTI.at<float>(2, 3);
+    if (track_ok) {
 
+        tf2::Quaternion Qtrn;
+        double Roll, Pitch, Yaw;
+        Qtrn.setValue(slam_pose.rotation.x,slam_pose.rotation.y,
+                      slam_pose.rotation.z,slam_pose.rotation.w);
+        tf2::Matrix3x3(Qtrn).getRPY(Roll, Pitch, Yaw);
 
-        // get rotation matrix
-        cv::Mat R = RTI(cv::Rect(0, 0, 3, 3));
+        x = slam_pose.translation.x;
+        y = slam_pose.translation.y;
+        z = slam_pose.translation.z;
+        yaw = Yaw;
+        pitch = Pitch;
+        roll = Roll;
 
-    //        ROS_WARN("R: w -> %d, h -> %d", R.cols, R.rows);
-    //        for (int j = 0; j < R.rows; j++)
-    //            ROS_WARN("%f\t%f\t%f\n", R.at<double>(j, 0), R.at<double>(j, 1), R.at<double>(j, 2));
+        Qtrn.setValue(init_pose.rotation.x,init_pose.rotation.y,
+                      init_pose.rotation.z,init_pose.rotation.w);
+        tf2::Matrix3x3(Qtrn).getRPY(Roll, Pitch, Yaw);
 
-        // extract yaw, pitch, roll
-        cv::Vec3f angles = rotationMatrixToEulerAngles(R);
-        yaw = angles[2];
-        pitch = angles[1];
-        roll = angles[0];
-    }
-
-    float x_i = 0.0;
-    float y_i = 0.0;
-    float z_i = 0.0;
-    float yaw_i = 0.0;
-    float pitch_i = 0.0;
-    float roll_i = 0.0;
-
-    if (!InitPose.empty())
-    {
-        cv::Mat InitPoseI=InitPose.inv();
-
-        //        ROS_WARN("RT: w -> %d, h -> %d", RT.cols, RT.rows);
-        //        for (int j = 0; j < RT.rows; j++)
-        //            ROS_WARN("%f\t%f\t%f\t%f", RT.at<float>(j, 0), RT.at<float>(j, 1), RT.at<float>(j, 2), RT.at<float>(j, 3));
-
-        //std::cout << RTI << std::endl;
-        // extract x, y, z
-        x_i = InitPoseI.at<float>(0, 3);
-        y_i = InitPoseI.at<float>(1, 3);
-        z_i = InitPoseI.at<float>(2, 3);
+        x_i = init_pose.translation.x;
+        y_i = init_pose.translation.y;
+        z_i = init_pose.translation.z;
+        yaw_i = Yaw;
+        pitch_i = Pitch;
+        roll_i = Roll;
 
 
-        // get rotation matrix
-        cv::Mat InitR = InitPoseI(cv::Rect(0, 0, 3, 3));
+        Qtrn.setValue(px4_estimation.rotation.x,px4_estimation.rotation.y,
+                      px4_estimation.rotation.z,px4_estimation.rotation.w);
+        tf2::Matrix3x3(Qtrn).getRPY(Roll, Pitch, Yaw);
 
-        //        ROS_WARN("R: w -> %d, h -> %d", R.cols, R.rows);
-        //        for (int j = 0; j < R.rows; j++)
-        //            ROS_WARN("%f\t%f\t%f\n", R.at<double>(j, 0), R.at<double>(j, 1), R.at<double>(j, 2));
+        x_p = px4_estimation.translation.x;
+        y_p = px4_estimation.translation.y;
+        z_p = px4_estimation.translation.z;
+        yaw_p = Yaw;
+        pitch_p = Pitch;
+        roll_p = Roll;
 
-        // extract yaw, pitch, roll
-        cv::Vec3f angles = rotationMatrixToEulerAngles(InitR);
-        yaw_i = angles[2];
-        pitch_i = angles[1];
-        roll_i = angles[0];
+
+
+
+//        if (!RT.empty()) {
+//            cv::Mat RTI = RT.inv();
+//
+//            //        ROS_WARN("RT: w -> %d, h -> %d", RT.cols, RT.rows);
+//            //        for (int j = 0; j < RT.rows; j++)
+//            //            ROS_WARN("%f\t%f\t%f\t%f", RT.at<float>(j, 0), RT.at<float>(j, 1), RT.at<float>(j, 2), RT.at<float>(j, 3));
+//
+//            //std::cout << RTI << std::endl;
+//            // extract x, y, z
+//            x = RTI.at<float>(0, 3);
+//            y = RTI.at<float>(1, 3);
+//            z = RTI.at<float>(2, 3);
+//
+//
+//            // get rotation matrix
+//            cv::Mat R = RTI(cv::Rect(0, 0, 3, 3));
+//
+//            //        ROS_WARN("R: w -> %d, h -> %d", R.cols, R.rows);
+//            //        for (int j = 0; j < R.rows; j++)
+//            //            ROS_WARN("%f\t%f\t%f\n", R.at<double>(j, 0), R.at<double>(j, 1), R.at<double>(j, 2));
+//
+//            // extract yaw, pitch, roll
+//            cv::Vec3f angles = rotationMatrixToEulerAngles(R);
+//            yaw = angles[2];
+//            pitch = angles[1];
+//            roll = angles[0];
+//        }
+//
+//        if (!InitPose.empty()) {
+//            cv::Mat InitPoseI = InitPose.inv();
+//
+//            //        ROS_WARN("RT: w -> %d, h -> %d", RT.cols, RT.rows);
+//            //        for (int j = 0; j < RT.rows; j++)
+//            //            ROS_WARN("%f\t%f\t%f\t%f", RT.at<float>(j, 0), RT.at<float>(j, 1), RT.at<float>(j, 2), RT.at<float>(j, 3));
+//
+//            //std::cout << RTI << std::endl;
+//            // extract x, y, z
+//            x_i = InitPoseI.at<float>(0, 3);
+//            y_i = InitPoseI.at<float>(1, 3);
+//            z_i = InitPoseI.at<float>(2, 3);
+//
+//
+//            // get rotation matrix
+//            cv::Mat InitR = InitPoseI(cv::Rect(0, 0, 3, 3));
+//
+//            //        ROS_WARN("R: w -> %d, h -> %d", R.cols, R.rows);
+//            //        for (int j = 0; j < R.rows; j++)
+//            //            ROS_WARN("%f\t%f\t%f\n", R.at<double>(j, 0), R.at<double>(j, 1), R.at<double>(j, 2));
+//
+//            // extract yaw, pitch, roll
+//            cv::Vec3f angles = rotationMatrixToEulerAngles(InitR);
+//            yaw_i = angles[2];
+//            pitch_i = angles[1];
+//            roll_i = angles[0];
+//        }
     }
 
     // print log
@@ -215,7 +264,11 @@ void LoggerMaster::log_slam_data(const ros::Time &current_time,
     log_stream << std::to_string((double)proc_time.toNSec()/1000000000.0) <<  ",";
 
     log_stream << x_i << "," << y_i << "," << z_i << ",";
-    log_stream << yaw_i << "," << pitch_i << "," << roll_i <<"\n";
+    log_stream << yaw_i << "," << pitch_i << "," << roll_i <<",";
+
+    log_stream << x_p << "," << y_p << "," << z_p << ",";
+    log_stream << yaw_p << "," << pitch_p << "," << roll_p <<"\n";
+
 
     log_stream.flush();
 }

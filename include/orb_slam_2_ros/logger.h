@@ -24,8 +24,10 @@ public:
     void log_slam_data(const ros::Time &current_time,
                        const ros::Duration &proc_time,
                        int slam_state,
-                       const cv::Mat &T_C_W_opencv,
-                       const cv::Mat &InitPose
+                       bool track_ok,
+                       const geometry_msgs::Transform &slam_pose,
+                       const geometry_msgs::Transform &init_pose,
+                       const geometry_msgs::Transform &px4_estimation
 
     );
 
