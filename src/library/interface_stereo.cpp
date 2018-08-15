@@ -5,7 +5,7 @@
 namespace orb_slam_2_interface {
 
 OrbSlam2InterfaceStereo::OrbSlam2InterfaceStereo(const ros::NodeHandle& nh,
-                                                 const ros::NodeHandle& nh_private)
+                                                 const ros::NodeHandle& nh_private, bool use_pangolin)
     : OrbSlam2Interface(nh, nh_private) {
     // Getting data and params
     subscribeToTopics();
@@ -15,7 +15,7 @@ OrbSlam2InterfaceStereo::OrbSlam2InterfaceStereo(const ros::NodeHandle& nh,
 
     slam_system_ = std::shared_ptr<ORB_SLAM2::System>(
         new ORB_SLAM2::System(vocabulary_file_path_, settings_file_path_,
-                              ORB_SLAM2::System::STEREO, true));
+                              ORB_SLAM2::System::STEREO, use_pangolin));
 }
 
 void OrbSlam2InterfaceStereo::subscribeToTopics() {

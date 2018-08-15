@@ -23,7 +23,8 @@ class OrbSlam2InterfaceStereo : public OrbSlam2Interface {
   std::ofstream fs_logfile;
   // Constructor
   OrbSlam2InterfaceStereo(const ros::NodeHandle& nh,
-                          const ros::NodeHandle& nh_private);
+                          const ros::NodeHandle& nh_private,
+                          bool use_pangolin);
 
  protected:
   // Subscribes to the appropriate ROS topics

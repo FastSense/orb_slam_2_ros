@@ -6,7 +6,7 @@ namespace orb_slam_2_interface {
 
 
 OrbSlam2InterfaceRgbd::OrbSlam2InterfaceRgbd(const ros::NodeHandle& nh,
-                                                 const ros::NodeHandle& nh_private)
+                                             const ros::NodeHandle& nh_private, bool use_pangolin)
     : OrbSlam2Interface(nh, nh_private) {
 
     ROS_WARN("Urock OrbSlam2InterfaceRgbd");
@@ -17,7 +17,7 @@ OrbSlam2InterfaceRgbd::OrbSlam2InterfaceRgbd(const ros::NodeHandle& nh,
 //    getParametersFromRos();
     slam_system_ = std::shared_ptr<ORB_SLAM2::System>(
         new ORB_SLAM2::System(vocabulary_file_path_, settings_file_path_,
-                              ORB_SLAM2::System::RGBD, true));
+                              ORB_SLAM2::System::RGBD, use_pangolin));
 
 //    rgbImage = cv::Mat(480,640,CV_8UC1);
 }

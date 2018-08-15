@@ -28,7 +28,8 @@ class OrbSlam2InterfaceRgbd : public OrbSlam2Interface {
 public:
     // Constructor
     OrbSlam2InterfaceRgbd(const ros::NodeHandle& nh,
-                            const ros::NodeHandle& nh_private);
+                          const ros::NodeHandle& nh_private,
+                          bool use_pangolin);
 
     void depth_model_callback(const sensor_msgs::CameraInfoConstPtr& depth_info_msg);
     void rgb_model_callback(const sensor_msgs::CameraInfoConstPtr& rgb_info_msg);
